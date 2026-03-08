@@ -1,93 +1,52 @@
-# Optimization Model (MILP)
+## Optimization Model (MILP)
 
-This section presents the mathematical formulation of the **Mixed Integer Linear Programming (MILP)** model used to optimize workforce scheduling.
+This section presents the mathematical formulation of the **Mixed Integer Linear Programming (MILP)** model developed to optimize workforce scheduling.
 
-## 1. Problem Description
+### 1. Problem Description
+The project addresses a shift-scheduling problem where the objective is to assign specific work states to a group of employees. The model balances operational requirements with labor regulations, such as mandatory lunch windows and contract types, while minimizing the service gap (understaffing).
 
-The project addresses a workforce shift-scheduling problem where the objective is to assign work states (Working, Lunch, or Off) to a set of employees while satisfying operational demand and labor regulations.
+### 2. Sets and Indices
+* $e \in E$: Set of employees (e.g., $E = \{1, 2, 3\}$).
+* $t \in T$: Set of hourly time slots (8:00 AM to 4:00 PM).
+* $d \in D$: Planning horizon (days).
 
-The model ensures coverage of service demand while respecting constraints such as contract duration, lunch breaks, and scheduling continuity.
+### 3. Decision Variables
+Binary variables represent the state of each employee $e$ at time $t$ on day $d$:
+* $x_{e,t,d} = 1$: If employee $e$ is **working**.
+* $y_{e,t,d} = 1$: If employee $e$ is **at lunch**.
+* $z_{e,t,d} = 1$: If employee $e$ is **off (nothing)**.
+* $s_{t,d}^+$: Integer variable representing the **understaffing shortage** at time $t$.
 
-## 2. Sets
+### 4. Objective Function
+The objective is to **minimize the total operational shortage** throughout the scheduled horizon:
 
-* (E): set of employees
-* (T): set of time slots
-* (D): set of days in the planning horizon
+$$\min Z = \sum_{d \in D} \sum_{t \in T} s_{t,d}^+$$
 
-## 3. Decision Variables
 
-Binary variables are used to represent the state of each employee (e) at time slot (t) on day (d):
 
-* (x_{e,t,d} = 1) if employee (e) is **working** at time (t) on day (d); 0 otherwise.
-* (y_{e,t,d} = 1) if employee (e) is **at lunch** at time (t) on day (d); 0 otherwise.
-* (z_{e,t,d} = 1) if employee (e) is **off (idle)** at time (t) on day (d); 0 otherwise.
+### 5. Constraints
+The following constraints define the feasible region of the schedule based on labor laws and operational policies:
 
-Additional variable:
+* **State Uniqueness:** Each employee must be in exactly one state per time slot:
+  $$x_{e,t,d} + y_{e,t,d} + z_{e,t,d} = 1, \quad \forall e, t, d$$
 
-* (s_{t,d}^+): integer variable representing the **understaffing shortage** at time (t) on day (d).
+* **Demand Coverage:** The total assigned capacity plus the shortage must meet or exceed the hourly demand $D_{t,d}$:
+  $$\sum_{e \in E} x_{e,t,d} + s_{t,d}^+ \geq D_{t,d}, \quad \forall t, d$$
 
-## 4. Objective Function
+* **Workload Duration:** Total working hours must strictly match the contract type $C_e$:
+  $$\sum_{t \in T} x_{e,t,d} = C_e, \quad \forall e, d$$
 
-The objective is to **minimize the total operational shortage** during the scheduling horizon:
+* **Mandatory Lunch:** Each employee must have exactly one hour of lunch (excluding specific part-time contracts):
+  $$\sum_{t \in T} y_{e,t,d} = 1, \quad \forall e, d$$
 
-[
-\min Z = \sum_{d \in D} \sum_{t \in T} s_{t,d}^+
-]
+* **Lunch Window:** Lunch is restricted to the interval between 11:00 AM and 2:00 PM:
+  $$y_{e,t,d} = 0 \quad \text{if } t \notin [11:00, 14:00]$$
 
-## 5. Constraints
+* **Shift Continuity:** Once an employee starts their shift, they cannot return to the "Off" state until the workday is complete:
+  $$x_{e,t,d} + y_{e,t,d} \geq x_{e,t-1,d} + y_{e,t-1,d}, \quad \forall t > 1$$
 
-### State Uniqueness
+* **Mandatory End State:** To ensure the shift doesn't end prematurely in a "Nothing" state, the last slot must be "Working":
+  $$x_{e,T,d} = 1, \quad \forall e, d \quad (\text{if assigned to a shift})$$
 
-Each employee must be in exactly one state at each time slot:
-
-[
-x_{e,t,d} + y_{e,t,d} + z_{e,t,d} = 1, \quad \forall e,t,d
-]
-
-### Demand Coverage
-
-The total assigned workforce plus the shortage must meet or exceed the demand (D_{t,d}):
-
-[
-\sum_{e \in E} x_{e,t,d} + s_{t,d}^+ \geq D_{t,d}, \quad \forall t,d
-]
-
-### Workload Duration
-
-Total working hours must match the contract type (C_e):
-
-[
-\sum_{t \in T} x_{e,t,d} = C_e, \quad \forall e,d
-]
-
-### Mandatory Lunch
-
-Each employee must have exactly one lunch period per day:
-
-[
-\sum_{t \in T} y_{e,t,d} = 1, \quad \forall e,d
-]
-
-### Lunch Window
-
-Lunch must occur within the allowed interval:
-
-[
-y_{e,t,d} = 0 \quad \text{if } t \notin [11:00, 14:00]
-]
-
-### Shift Continuity
-
-Once an employee starts working, they cannot return to the "Off" state before finishing their shift (except for lunch):
-
-[
-x_{e,t,d} + y_{e,t,d} \geq x_{e,t-1,d} + y_{e,t-1,d}
-]
-
-### Minimum Staffing
-
-At least one employee must be working when demand is positive:
-
-[
-\sum_{e \in E} x_{e,t,d} \geq 1 \quad \text{if } D_{t,d} \geq 1
-]
+* **Minimum Staffing:** At least one employee must be on duty if there is registered demand:
+  $$\sum_{e \in E} x_{e,t,d} \geq 1 \quad \text{if } D_{t,d} \geq 1$$
