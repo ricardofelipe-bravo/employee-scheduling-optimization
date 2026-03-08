@@ -1,44 +1,42 @@
-# Implementaciones en MATLAB
+# MATLAB Implementations
 
-Esta carpeta contiene los scripts utilizados para resolver el problema de programación de turnos mediante dos enfoques de optimización: un método heurístico y un método exacto.
+This folder contains the MATLAB scripts used to solve the workforce scheduling optimization problem using two different approaches: a heuristic method and an exact optimization method.
 
-## Métodos utilizados
+## Implemented Methods
 
-### Algoritmo Genético — `Optimizacion_turnos_ga.mlx`
+### Genetic Algorithm — `Optimizacion_turnos_ga.mlx`
 
-Metaheurística inspirada en la evolución biológica. Opera sobre una población de **300 individuos** que evolucionan durante hasta **400 generaciones** mediante selección por torneo, cruce de Laplace y mutación.
+A metaheuristic inspired by biological evolution. The algorithm operates on a population of **300 individuals** evolving for up to **400 generations** through tournament selection, Laplace crossover, and mutation.
 
-La función objetivo evalúa directamente el **desabastecimiento (shortage)** de forma no lineal sobre **296 variables binarias/enteras**, sin necesidad de reformulación del modelo.
+The objective function evaluates the **service shortage** directly as a nonlinear function over **296 binary/integer decision variables**, avoiding the need for a reformulation of the model.
 
-Al ser un método heurístico, **no garantiza el óptimo global**, pero es capaz de explorar espacios de búsqueda discretos de gran dimensión con gran flexibilidad.
+Since this is a heuristic approach, it **does not guarantee the global optimum**, but it is capable of exploring high-dimensional discrete search spaces with considerable flexibility.
 
-### Programación Entera Mixta — `Optimizacion_turnos_intlinprog.mlx`
+### Mixed Integer Linear Programming — `Optimizacion_turnos_intlinprog.mlx`
 
-Método exacto basado en **relajación lineal y branch-and-bound**, resuelto con el solver **HiGHS** a través de `intlinprog`.
+An exact optimization method based on **linear relaxation and branch-and-bound**, solved using the **HiGHS solver** through MATLAB's `intlinprog`.
 
-Para expresar la función objetivo como una forma lineal, se incorporan **16 variables auxiliares de shortage** (sh(t,d)) que satisfacen:
+To express the objective function in linear form, **16 auxiliary shortage variables** (sh(t,d)) are introduced, satisfying:
 
-[
-sh(t,d) \geq demanda(t,d) - \sum x_{e,t,d}
-]
+sh(t,d) ≥ demand(t,d) − Σ x(e,t,d)
 
-Esto convierte el problema en un modelo de **312 variables**, formulado como un problema de programación entera mixta.
+This reformulation converts the problem into a **Mixed Integer Linear Programming (MILP)** model with **312 variables**.
 
-A diferencia del algoritmo genético, este método **garantiza la solución óptima global** y lo hace en una fracción del tiempo de cómputo.
+Unlike the genetic algorithm, this approach **guarantees the global optimal solution** and typically finds it in a significantly shorter computation time.
 
-## Cómo ejecutar
+## How to Run
 
-1. Abrir MATLAB.
-2. Cargar el archivo correspondiente al método deseado.
-3. Ejecutar el script principal.
+1. Open MATLAB.
+2. Load the desired script.
+3. Run the optimization model.
 
-Archivos disponibles:
+Available scripts:
 
 * `Optimizacion_turnos_ga.mlx`
 * `Optimizacion_turnos_intlinprog.mlx`
 
-## Requisitos
+## Requirements
 
-* MATLAB **R2021a o superior**
+* MATLAB **R2021a or later**
 * **Optimization Toolbox**
-* **Global Optimization Toolbox** (requerida para el algoritmo genético)
+* **Global Optimization Toolbox** (required for the Genetic Algorithm)
