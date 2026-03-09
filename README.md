@@ -40,5 +40,6 @@ The dataset is based on **Datatón 2023 – Etapa 2** (Bancolombia), where servi
 
 ## Author
 
-Ricardo Felipe Bravo Arevalo  
+Ricardo Felipe Bravo Arevalo 
+David Jesus Lara Revelo
 Departamento de Ingeniería Electrónica — Universidad de Nariño
